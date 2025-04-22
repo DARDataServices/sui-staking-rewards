@@ -28,11 +28,11 @@ from datetime import datetime, timedelta
 
 
 def clean(data):
-    return data.apply(lambda row: format_row(row['date'], row['validator_rewards'], row['total_staked'] / 1_000_000_000), axis=1)
+    return data.apply(lambda row: format_row(row['date'], row['total_staked'] / 1_000_000_000, row['validator_rewards'] / 1_000_000_000), axis=1)
 
 def format_row(date, current_staked, current_rewards):
     return pd.Series({
-        'blockchain': 'SUI',
+        'blockchain': 'Sui',
         'darAssetID': 'DAWFILV',
         'darAssetTicker': 'SUI',
         'sedol': 'BNKG9G7',
