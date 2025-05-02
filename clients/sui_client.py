@@ -1,6 +1,6 @@
 from PythonCore.node_utils import AbstractNodeClient
 import requests
-import json
+import pandas as pd
 
 class SuiClient(AbstractNodeClient):
     def __init__(self, rpc_url):
@@ -8,12 +8,7 @@ class SuiClient(AbstractNodeClient):
         self.rpc_provider = rpc_url
 
     def _make_rpc_request(self, method, params=None):
-        payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": method,
-            "params": params if params else []
-        }
+        payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or []}
         try:
             response = requests.post(self.rpc_provider, json=payload)
             response.raise_for_status()
@@ -26,24 +21,9 @@ class SuiClient(AbstractNodeClient):
             print(f"Request Error: {e}")
             return None
 
-    def get_staking_rewards_for_epoch(self, validators, epoch):
-        epoch_rewards = 0
-
-        for address in validators:
-            response = self._make_rpc_request('suix_getStakes', [address])
-
-            if response and isinstance(response, list):
-                stakes = response[0].get('stakes', [])
-
-                for stake in stakes:
-                    if int(stake.get('stakeActiveEpoch')) == epoch:
-                        epoch_rewards += int(stake.get('estimatedReward', 0))
-
-        return epoch_rewards
-
     def get_settlement_time(self, epoch):
         result = self._make_rpc_request('suix_getLatestSuiSystemState')
-        return result.get('epochStartTimestampMs') ## TODO is this correct?
+        return result.get('epochStartTimestampMs')
 
     def get_current_epoch(self):
         result = self._make_rpc_request('suix_getLatestSuiSystemState')
@@ -51,13 +31,42 @@ class SuiClient(AbstractNodeClient):
 
     def get_total_stake(self, epoch):
         result = self._make_rpc_request('suix_getLatestSuiSystemState')
-        return int(result.get('totalStake'))
+        return int(result.get('totalStake')) / 1_000_000_000
 
-    def get_active_validators(self, current_epoch):
+    def get_active_validators(self):
         result = self._make_rpc_request('suix_getLatestSuiSystemState')
+
         active_validators = result.get('activeValidators')
-        active_validators_list = [validator.get('suiAddress') for validator in active_validators]
-        return json.dumps(active_validators_list)
+        current_epoch = int(result.get('epoch'))
+
+        rows = []
+        for validator_data in active_validators:
+            row = {
+                "validator": validator_data["suiAddress"],
+                "stake": float(validator_data["stakingPoolSuiBalance"]),
+                "epoch": current_epoch,
+            }
+            rows.append(row)
+
+        return pd.DataFrame(rows)
+
+    def get_validator_apys(self):
+        result = self._make_rpc_request('suix_getValidatorsApy')
+
+        validators_apy_data  = result.get('apys')
+        current_epoch = int(result.get('epoch'))
+
+        rows = []
+        for validator_data in validators_apy_data:
+            row = {
+                "validator": validator_data["address"],
+                "apy": float(validator_data["apy"]),
+                "epoch": current_epoch
+            }
+            rows.append(row)
+
+        return pd.DataFrame(rows)
+
 
     def get_staking_rewards(self, epoch):
         pass
