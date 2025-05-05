@@ -2,7 +2,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 def clean(data):
-    return data.apply(lambda row: format_row(row['date'], row['total_staked'], row['validator_rewards']), axis=1)
+    reversed_data = data.iloc[::-1].reset_index(drop=True)
+    return reversed_data.apply(lambda row: format_row(row['date'], row['total_staked'], row['validator_rewards']), axis=1)
 
 def format_row(date, current_staked, current_rewards):
     return pd.Series({
