@@ -42,9 +42,9 @@ def main():
 
     data = bq.fetch_historical_data()
     file = clean(data)
-    bq.upload_to_s3(file, GCS_BUCKET_NAME)
-    # send_slack_alert(bq.upload_to_s3(file, GCS_BUCKET_NAME))
-    # send_slack_alert(upload_to_aws(file, get_env_var('AWS_BUCKET_NAME')))
+    # bq.upload_to_s3(file, GCS_BUCKET_NAME)
+    send_slack_alert(bq.upload_to_s3(file, GCS_BUCKET_NAME))
+    send_slack_alert(upload_to_aws(file, get_env_var('AWS_BUCKET_NAME')))
     print("Done.")
 
 if __name__ == "__main__":
