@@ -15,7 +15,7 @@ DATASET_ID = get_env_var('DATASET_ID')
 TABLE_ID = get_env_var('TABLE_ID')
 RPC_URL = get_env_var('RPC_URL')
 GCS_BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME')
-# AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 
 def main():
     bq = BigQueryClient(PROJECT_ID, DATASET_ID, TABLE_ID)
